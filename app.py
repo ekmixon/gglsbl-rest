@@ -29,13 +29,12 @@ def _lookup(url, api_key, retry=1):
             last_api_key = api_key
         return sbl.lookup_url(url)
     except:
-        app.logger.exception("exception handling [" + url + "]")
-        if retry >= max_retries:
-            sbl = None
-            last_api_key = None
-            abort(500)
-        else:
+        app.logger.exception(f"exception handling [{url}]")
+        if retry < max_retries:
             return _lookup(url, api_key, retry + 1)
+        sbl = None
+        last_api_key = None
+        abort(500)
 
 
 @app.route('/gglsbl/lookup/<path:url>', methods=['GET'])
@@ -51,15 +50,12 @@ def app_lookup(url):
         app.logger.error('no API key to use')
         abort(401)
 
-    # look up URL
-    matches = _lookup(url, api_key)
-    if matches:
+    if matches := _lookup(url, api_key):
         return jsonify(url=url, matches=[{'threat': x.threat_type, 'platform': x.platform_type,
                                           'threat_entry': x.threat_entry_type} for x in matches])
-    else:
-        resp = jsonify(url=url, matches=[])
-        resp.status_code = 404
-        return resp
+    resp = jsonify(url=url, matches=[])
+    resp.status_code = 404
+    return resp
 
 
 @app.route('/gglsbl/status', methods=['GET'])

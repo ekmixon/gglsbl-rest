@@ -11,13 +11,13 @@ logger = logging.getLogger('update')
 
 # function that updates the hash prefix cache if necessary
 def update_hash_prefix_cache():
-    logger.info('opening database at ' + dbfile)
+    logger.info(f'opening database at {dbfile}')
     sbl = SafeBrowsingList(gsb_api_key, dbfile, True)
 
-    logger.info('updating database at ' + dbfile)
+    logger.info(f'updating database at {dbfile}')
     sbl.update_hash_prefix_cache()
 
-    logger.info('checkpointing database at ' + dbfile)
+    logger.info(f'checkpointing database at {dbfile}')
     with sbl.storage.get_cursor() as dbc:
         dbc.execute('PRAGMA wal_checkpoint(FULL)')
     sbl.storage.db.commit()
